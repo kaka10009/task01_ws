@@ -1,0 +1,8 @@
+prefix=/home/kaka/task01_ws/install
+
+Name: tools_msgs
+Description: Description of tools_msgs
+Version: 0.0.0
+Cflags: -I${prefix}/include
+Libs: -L${prefix}/lib 
+Requires: rospy std_msgs geometry_msgs message_runtime

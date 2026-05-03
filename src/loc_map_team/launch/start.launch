@@ -1,0 +1,8 @@
+<launch>
+
+<param name="robot_description" textfile="$(find loc_map_team)/urdf/car.urdf"/>
+<node name="rsp" pkg="robot_state_publisher" type="robot_state_publisher"/>
+<node name="loc_node" pkg="loc_map_team" type="loc_map_node" output="screen"/>
+<node name="rviz" pkg="rviz" type="rviz"/>
+
+</launch>
