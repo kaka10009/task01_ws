@@ -18,10 +18,20 @@
 #include <cmath>
 
 using namespace message_filters;
-             cone_array_msg->header.stamp.toSec());
+             //cone_array_msg->header.stamp.toSec());
 
-    visualization_msgs::Marker car_marker;
-    car_marker.action = visualization_msgs::Marker::ADD;
+    //visualization_msgs::Marker car_marker;
+   // car_marker.action = visualization_msgs::Marker::ADD;
+void body2World(double xb,double yb,
+                double car_x,double car_y,double yaw,
+                double& world_x,double& world_y)
+
+{
+    double c=cos(yaw);
+    double s=sin(yaw);
+    world_x=xb*c-yb*s+car_x;
+    world_y=xb*s+yb*c+car_y;
+}
 
 // 全局发布器
 ros::Publisher car_marker_pub;    // 小车可视化
@@ -36,6 +46,36 @@ void syncCallback(
     ROS_INFO("Sync OK: odom=%.3f, cones=%.3f",
              odom_msg->header.stamp.toSec(),
              cone_array_msg->header.stamp.toSec());
+   //1.获取小车世界坐标系
+    double car_x=odom_msg->pose.pose.position.x;
+    double car_y=odom_msg->pose.pose.position.y;
+
+    tf::Quaternion q(
+        odom_msg->pose.pose.orientation.x,
+        odom_msg->pose.pose.orientation.y,
+        odom_msg->pose.pose.orientation.z,
+        odom_msg->pose.pose.orientation.w
+
+
+    );
+    tf::Matrix3x3 m(q);
+    double roll,pitch,yaw;
+    m.getRPY(roll,pitch,yaw);//yaw为航向角
+
+    for(auto& cone:cone_array_msg->cones)
+    {
+        double cone_body_x=cone.x;
+        double cone_body_y=cone.y;
+        double cone_world_x,cone_world_y;
+
+        body2World(cone_body_x,cone_body_y,car_x,car_y,yaw,cone_world_x,cone_world_y);
+
+        //打印转换结果
+        ROS_INFO("锥桶 局部(%.2f,%.2f)->世界(%.2f,%.2f)"
+                  cone_body_x,cone_body_y,cone_world_x,cone_world_y);
+
+    }
+  
 
     visualization_msgs::Marker car_marker;
     car_marker.action = visualization_msgs::Marker::ADD;
@@ -161,8 +201,8 @@ int main(int argc, char** argv)
     cone_marker_pub = nh.advertise<visualization_msgs::MarkerArray>("/team/cone_markers", 10);
 
     // 模拟数据定时器
-    ros::Timer timer = nh.createTimer(ros::Duration(0.1),
-        boost::bind(timerCallback, _1, boost::ref(nh)));
+  //  ros::Timer timer = nh.createTimer(ros::Duration(0.1),
+   //     boost::bind(timerCallback, _1, boost::ref(nh)));
 
     
 
